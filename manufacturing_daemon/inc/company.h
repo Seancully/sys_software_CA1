@@ -7,14 +7,14 @@
 #include "pwd.h"
 
 // The Directory Paths
-#define UPLOAD_DIR "/var/company/upload"
-#define REPORTING_DIR "/var/company/reporting"
-#define BACKUP_DIR "/var/company/backup"
-#define LOG_DIR "/var/company/logs"
-#define CHANGE_LOG "/var/company/logs/change.log"
-#define ERROR_LOG "/var/company/logs/error.log"
-#define LOCK_FILE "/var/run/company_daemon.lock"
-#define PID_FILE "/var/run/company_daemon.pid"
+#define UPLOAD_DIR "./data/upload"
+#define REPORTING_DIR "./data/reporting"
+#define BACKUP_DIR "./data/backup"
+#define LOG_DIR "./logs"
+#define CHANGE_LOG "./logs/change.log"
+#define ERROR_LOG "./logs/error.log"
+#define LOCK_FILE "./company_daemon.lock"
+#define PID_FILE "./company_daemon.pid"
 
 // Transfer time at 1AM
 #define TRANSFER_TIME_HOUR 1

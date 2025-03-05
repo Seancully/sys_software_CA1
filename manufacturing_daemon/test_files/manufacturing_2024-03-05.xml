@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report department="manufacturing" date="2024-03-05">
+  <production>
+    <item id="2001" name="Product X" quantity="120" />
+    <item id="2002" name="Product Y" quantity="85" />
+    <item id="2003" name="Product Z" quantity="45" />
+  </production>
+</report>

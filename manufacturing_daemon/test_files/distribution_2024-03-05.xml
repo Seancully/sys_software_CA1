@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report department="distribution" date="2024-03-05">
+  <shipments>
+    <shipment id="4001" destination="Customer A" product="Product X" quantity="50" />
+    <shipment id="4002" destination="Customer B" product="Product Y" quantity="25" />
+    <shipment id="4003" destination="Customer C" product="Product Z" quantity="15" />
+  </shipments>
+</report>

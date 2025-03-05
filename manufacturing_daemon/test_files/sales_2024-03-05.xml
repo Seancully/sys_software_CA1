@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report department="sales" date="2024-03-05">
+  <transactions>
+    <sale id="3001" product="Product X" quantity="100" revenue="50000" />
+    <sale id="3002" product="Product Y" quantity="75" revenue="45000" />
+    <sale id="3003" product="Product Z" quantity="40" revenue="32000" />
+  </transactions>
+</report>

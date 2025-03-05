@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report department="warehouse" date="2024-03-05">
+  <inventory>
+    <item id="1001" name="Raw Material A" quantity="500" />
+    <item id="1002" name="Raw Material B" quantity="350" />
+    <item id="1003" name="Raw Material C" quantity="175" />
+  </inventory>
+</report>

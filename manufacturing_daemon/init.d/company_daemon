@@ -1,0 +1,165 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          company_daemon
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Company Manufacturing Daemon
+# Description:       Daemon for managing manufacturing department reports
+### END INIT INFO
+
+# Define variables
+NAME="company_daemon"
+DESC="Company Manufacturing Daemon"
+DAEMON="/usr/sbin/company_daemon"
+PIDFILE="/var/run/company_daemon.pid"
+LOCKFILE="/var/run/company_daemon.lock"
+DAEMON_ARGS=""
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Exit if the package is not installed
+[ -x "$DAEMON" ] || exit 0
+
+# Read configuration if present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# Define LSB log_* functions
+. /lib/lsb/init-functions
+
+# Function to check if daemon is running
+is_running() {
+    if [ -f "$PIDFILE" ]; then
+        pid=$(cat "$PIDFILE")
+        if [ -n "$pid" ] && kill -0 $pid 2>/dev/null; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Function to start the daemon
+do_start() {
+    log_daemon_msg "Starting $DESC" "$NAME"
+    
+    # Check if daemon is already running
+    if is_running; then
+        log_progress_msg "already running"
+        log_end_msg 0
+        return 0
+    fi
+    
+    # Start daemon
+    $DAEMON $DAEMON_ARGS
+    
+    # Wait briefly for daemon to start
+    sleep 1
+    
+    # Check if started successfully
+    if is_running; then
+        log_end_msg 0
+        return 0
+    else
+        log_end_msg 1
+        return 1
+    fi
+}
+
+# Function to stop the daemon
+do_stop() {
+    log_daemon_msg "Stopping $DESC" "$NAME"
+    
+    # Check if daemon is running
+    if ! is_running; then
+        log_progress_msg "not running"
+        log_end_msg 0
+        return 0
+    fi
+    
+    # Get PID from pidfile
+    pid=$(cat "$PIDFILE")
+    
+    # Send SIGTERM
+    kill -15 $pid 2>/dev/null
+    
+    # Wait for daemon to terminate
+    for i in $(seq 1 10); do
+        if ! is_running; then
+            break
+        fi
+        sleep 1
+    done
+    
+    # If still running, force kill
+    if is_running; then
+        log_progress_msg "force kill"
+        kill -9 $pid 2>/dev/null
+        sleep 1
+    fi
+    
+    # Check if stopped successfully
+    if is_running; then
+        log_end_msg 1
+        return 1
+    else
+        log_end_msg 0
+        # Remove PID file and lock file
+        rm -f $PIDFILE $LOCKFILE
+        return 0
+    fi
+}
+
+# Function to reload the daemon
+do_reload() {
+    log_daemon_msg "Reloading $DESC" "$NAME"
+    
+    if is_running; then
+        # Send SIGUSR1 for reload/manual backup+transfer
+        pid=$(cat "$PIDFILE")
+        kill -SIGUSR1 $pid
+        log_end_msg 0
+        return 0
+    else
+        log_progress_msg "not running"
+        log_end_msg 1
+        return 1
+    fi
+}
+
+# Function to get daemon status
+do_status() {
+    if is_running; then
+        echo "$DESC is running."
+        return 0
+    else
+        echo "$DESC is not running."
+        return 1
+    fi
+}
+
+# Main case statement for command line arguments
+case "$1" in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    restart|force-reload)
+        do_stop
+        sleep 1
+        do_start
+        ;;
+    reload)
+        do_reload
+        ;;
+    status)
+        do_status
+        ;;
+    *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload|status}" >&2
+        exit 3
+        ;;
+esac
+
+exit $?
