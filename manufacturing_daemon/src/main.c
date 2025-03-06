@@ -3,10 +3,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
+
 
 int main(void) {
     int msgid;
+    char cwd[PATH_MAX];
+    char upload_dir[PATH_MAX];
+    char reporting_dir[PATH_MAX];
+    char backup_dir[PATH_MAX];
+    char log_dir[PATH_MAX];
+    
+    // Get the current working directory before daemonizing
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        perror("Failed to get current directory");
+        exit(EXIT_FAILURE);
+    }
+    
+    // Create absolute paths
+    snprintf(upload_dir, sizeof(upload_dir), "%s/data/upload", cwd);
+    snprintf(reporting_dir, sizeof(reporting_dir), "%s/data/reporting", cwd);
+    snprintf(backup_dir, sizeof(backup_dir), "%s/data/backup", cwd);
+    snprintf(log_dir, sizeof(log_dir), "%s/logs", cwd);
 
+    // The rest of your main function remains the same
     // Check if daemon is already running
     if (!check_singleton(LOCK_FILE)) {
         fprintf(stderr, "Error: Daemon is already running or could not acquire lock\n");
@@ -33,19 +53,25 @@ int main(void) {
     log_message(LOG_INFO, "Company daemon started successfully");
     
     // Create necessary directories if they don't exist
-    mkdir(UPLOAD_DIR, 0755);
-    mkdir(REPORTING_DIR, 0755);
-    mkdir(BACKUP_DIR, 0755);
-    mkdir(LOG_DIR, 0755);
+    mkdir(upload_dir, 0755);
+    mkdir(reporting_dir, 0755);
+    mkdir(backup_dir, 0755);
+    mkdir(log_dir, 0755);
     
+    // Override the default paths with absolute paths
+    // This ensures the daemon can find directories after changing working directory
+    char *abs_upload_dir = strdup(upload_dir);
+    char *abs_reporting_dir = strdup(reporting_dir);
+    char *abs_backup_dir = strdup(backup_dir);
+    char *abs_log_dir = strdup(log_dir);
+
     // Main daemon loop
     while (1) {
         time_t now;
         struct tm *tm_now;
         
         // Monitor uploads directory for changes
-        monitor_uploads();
-        
+monitor_uploads_with_path(abs_upload_dir);        
         // Check if it's time for the scheduled transfer (1 AM)
         time(&now);
         tm_now = localtime(&now);

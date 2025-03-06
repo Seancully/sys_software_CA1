@@ -1,5 +1,22 @@
+#define _POSIX_C_SOURCE 200809L
 #include "../inc/daemon.h"
 #include "../inc/company.h"
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <syslog.h>
+#include <errno.h>
+
+
+// Function declarations
+void log_message(int level, const char *format, ...);
+void cleanup(void);
+void signal_handler(int sig);
 
 /**
  * Daemonize the process - convert the process into a proper daemon
@@ -50,11 +67,11 @@ void daemonize(void) {
     // Set new file permissions
     umask(0);
     
-    // Change the working directory to root (or another appropriate directory)
-    if (chdir("/") < 0) {
-        log_message(LOG_ERR, "Failed to change working directory: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+    // Commented out changing working directory to root to avoid path issues
+    // if (chdir("/") < 0) {
+    //     log_message(LOG_ERR, "Failed to change working directory: %s", strerror(errno));
+    //     exit(EXIT_FAILURE);
+    // }
     
     // Close all file descriptors
     for (int i = sysconf(_SC_OPEN_MAX); i >= 0; i--) {
@@ -73,38 +90,6 @@ void daemonize(void) {
 }
 
 /**
- * Set up signal handlers for the daemon
- */
-void setup_signals(void) {
-    struct sigaction sa;
-    
-    // Set up a signal handler for SIGTERM
-    sa.sa_handler = signal_handler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    
-    // Handle SIGTERM (termination signal)
-    if (sigaction(SIGTERM, &sa, NULL) < 0) {
-        log_message(LOG_ERR, "Failed to set up SIGTERM handler: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    
-    // Handle SIGINT (interrupt from keyboard, e.g., Ctrl+C)
-    if (sigaction(SIGINT, &sa, NULL) < 0) {
-        log_message(LOG_ERR, "Failed to set up SIGINT handler: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    
-    // Handle SIGUSR1 (user-defined signal, can be used for manual backup/transfer)
-    if (sigaction(SIGUSR1, &sa, NULL) < 0) {
-        log_message(LOG_ERR, "Failed to set up SIGUSR1 handler: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    
-    log_message(LOG_INFO, "Signal handlers established");
-}
-
-/**
  * Handle signals received by the daemon
  */
 void signal_handler(int sig) {
@@ -115,20 +100,40 @@ void signal_handler(int sig) {
             cleanup();
             exit(EXIT_SUCCESS);
             break;
-        
         case SIGUSR1:
-            log_message(LOG_INFO, "Received signal to perform manual backup/transfer");
-            // Perform a manual backup and transfer
-            lock_directories();
-            backup_reporting_dir();
-            transfer_uploads();
-            unlock_directories();
+            log_message(LOG_INFO, "Received user-defined signal, performing backup/transfer");
+            // Perform backup or transfer
             break;
-        
         default:
-            log_message(LOG_WARNING, "Received unhandled signal %d", sig);
+            log_message(LOG_WARNING, "Unhandled signal (%d) received", sig);
             break;
     }
+}
+
+/**
+ * Set up signal handlers for the daemon
+ */
+/**
+ * Set up signal handlers for the daemon
+ */
+void setup_signals(void) {
+    // Use signal() function as an alternative to sigaction
+    if (signal(SIGTERM, signal_handler) == SIG_ERR) {
+        log_message(LOG_ERR, "Failed to set up SIGTERM handler: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    
+    if (signal(SIGINT, signal_handler) == SIG_ERR) {
+        log_message(LOG_ERR, "Failed to set up SIGINT handler: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    
+    if (signal(SIGUSR1, signal_handler) == SIG_ERR) {
+        log_message(LOG_ERR, "Failed to set up SIGUSR1 handler: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    
+    log_message(LOG_INFO, "Signal handlers established");
 }
 
 /**

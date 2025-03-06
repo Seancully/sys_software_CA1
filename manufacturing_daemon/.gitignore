@@ -1,2 +1,32 @@
 *.pdf
 *.docx
+
+# Compiled object files, libraries and executables
+*.o
+*.a
+*.so
+*.out
+bin/
+obj/
+
+# Log files and data directories
+logs/*.log
+data/upload/*
+data/reporting/*
+data/backup/*
+
+# System and temporary files
+.DS_Store
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+*.lock
+
+# Documentation files you've already included
+*.pdf
+*.docx
+
+# Build system files
+cmake-build-*/

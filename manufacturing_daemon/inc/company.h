@@ -13,8 +13,8 @@
 #define LOG_DIR "./logs"
 #define CHANGE_LOG "./logs/change.log"
 #define ERROR_LOG "./logs/error.log"
-#define LOCK_FILE "./company_daemon.lock"
-#define PID_FILE "./company_daemon.pid"
+#define LOCK_FILE "/tmp/company_daemon.lock"
+#define PID_FILE "/tmp/company_daemon.pid"
 
 // Transfer time at 1AM
 #define TRANSFER_TIME_HOUR 1
@@ -36,5 +36,6 @@ void monitor_uploads(void);
 void log_message(int priority, const char *format, ...);
 int setup_ipc(int msgid, long type, const char *msg);
 void cleanup_ipc(int msgid);
+void monitor_uploads_with_path(const char *upload_dir);
 
 #endif 

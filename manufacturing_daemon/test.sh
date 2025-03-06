@@ -11,7 +11,7 @@ echo "Building the daemon..."
 make
 
 echo "Starting the daemon in test mode..."
-./bin/company_daemon &
+./bin/test_mode &
 DAEMON_PID=$!
 echo "Daemon started with PID: $DAEMON_PID"
 

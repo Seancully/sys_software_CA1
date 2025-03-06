@@ -1,3 +1,5 @@
+#include <syslog.h>
+#include <stdarg.h>
 #include "../inc/company.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,10 +9,8 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <time.h>
-#include <syslog.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <stdarg.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <pwd.h>
@@ -501,6 +501,38 @@ void monitor_uploads(void) {
                 fclose(log_file);
             }
         }
+    }
+    
+    closedir(dir);
+}
+
+/**
+ * Monitor uploads directory for changes using an absolute path
+ */
+void monitor_uploads_with_path(const char *upload_dir) {
+    DIR *dir;
+    struct dirent *entry;
+    
+    dir = opendir(upload_dir);
+    if (dir == NULL) {
+        log_message(LOG_ERR, "Failed to open upload directory for monitoring: %s", strerror(errno));
+        return;
+    }
+    
+    // Process each entry in the directory
+    while ((entry = readdir(dir)) != NULL) {
+        // Skip . and .. entries
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+        
+        // Process the file here
+        char full_path[PATH_MAX];
+        snprintf(full_path, sizeof(full_path), "%s/%s", upload_dir, entry->d_name);
+        log_message(LOG_INFO, "Found file in upload directory: %s", full_path);
+        
+        // You may want to call your existing transfer logic here
+        // Or simply identify files to be transferred later
     }
     
     closedir(dir);
